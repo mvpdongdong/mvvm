@@ -6,6 +6,7 @@ function Observer(data) {
 Observer.prototype = {
     walk: function(data) {
         var me = this;
+        console.log(Object.keys(data));
         Object.keys(data).forEach(function(key) {
             me.convert(key, data[key]);
         });
@@ -16,8 +17,7 @@ Observer.prototype = {
 
     defineReactive: function(data, key, val) {
         var dep = new Dep();
-        var childObj = observe(val);
-
+        observe(val);
         Object.defineProperty(data, key, {
             enumerable: true, // 可枚举
             configurable: false, // 不能再define
@@ -33,7 +33,7 @@ Observer.prototype = {
                 }
                 val = newVal;
                 // 新的值是object的话，进行监听
-                childObj = observe(newVal);
+                observe(newVal);
                 // 通知订阅者
                 dep.notify();
             }
