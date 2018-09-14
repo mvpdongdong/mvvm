@@ -55,13 +55,13 @@ Compile.prototype = {
             var attrName = attr.name;
             if (me.isDirective(attrName)) {
                 var exp = attr.value;
-                var dir = attrName.substring(2);
+                var directive = attrName.substring(2);
                 // 事件指令
-                if (me.isEventDirective(dir)) {
-                    compileUtil.eventHandler(node, me.$vm, exp, dir);
+                if (me.isEventDirective(directive)) {
+                    compileUtil.eventHandler(node, me.$vm, exp, directive);
                     // 普通指令
                 } else {
-                    compileUtil[dir] && compileUtil[dir](node, me.$vm, exp);
+                    compileUtil[directive] && compileUtil[directive](node, me.$vm, exp);
                 }
 
                 node.removeAttribute(attrName);
@@ -77,8 +77,8 @@ Compile.prototype = {
         return attr.indexOf('v-') == 0;
     },
 
-    isEventDirective: function(dir) {
-        return dir.indexOf('on') === 0;
+    isEventDirective: function(directive) {
+        return directive.indexOf('on') === 0;
     },
 
     isElementNode: function(node) {
@@ -120,8 +120,8 @@ var compileUtil = {
         this.bind(node, vm, exp, 'class');
     },
 
-    bind: function(node, vm, exp, dir) {
-        var updaterFn = updater[dir + 'Updater'];
+    bind: function(node, vm, exp, directive) {
+        var updaterFn = updater[directive + 'Updater'];
 
         updaterFn && updaterFn(node, this._getVMVal(vm, exp));
 
@@ -131,8 +131,8 @@ var compileUtil = {
     },
 
     // 事件处理
-    eventHandler: function(node, vm, exp, dir) {
-        var eventType = dir.split(':')[1],
+    eventHandler: function(node, vm, exp, directive) {
+        var eventType = directive.split(':')[1],
             fn = vm.$options.methods && vm.$options.methods[exp];
 
         if (eventType && fn) {
