@@ -21,9 +21,8 @@ MVVM.prototype = {
         new Watcher(this, key, cb);
     },
 
-    _proxyData: function(key, setter, getter) {
+    _proxyData: function(key) {
         var me = this;
-        setter = setter || 
         Object.defineProperty(me, key, {
             configurable: false,
             enumerable: true,

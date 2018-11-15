@@ -6,7 +6,6 @@ function Observer(data) {
 Observer.prototype = {
     walk: function(data) {
         var me = this;
-        console.log(Object.keys(data));
         Object.keys(data).forEach(function(key) {
             me.convert(key, data[key]);
         });

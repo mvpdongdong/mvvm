@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+</head>
+<body>
+<input type="text" id="vm-input">
+  <p id="pp"></p>
+</body>
+<script>
+let uid = 0;
+function Dep () {
+  this.id = uid ++;
+  this.subs = [];
+}
+
+Dep.prototype = {
+  addSub (sub) {
+    this.subs.push(sub);
+  },
+  depend () {
+    Dep.target.addDep(this);
+  },
+  notify () {
+    this.subs.forEach(sub => sub.update());
+  }
+}
+
+Dep.target = null;
+
+function Observer (data) {
+  this.data = data;
+  this.walk(data);
+}
+
+Observer.prototype = {
+  walk (data) {
+    Object.keys(data).forEach(key => {
+      this.convert(key, data[key]);
+    });
+  },
+  
+  convert (key, val) {
+    this.defineReactive(this.data, key, val);
+  },
+  
+  defineReactive (data, key, val) {
+    var dep = new Dep();
+    observe(val);
+    
+    Object.defineProperty(data, key, {
+      configurable: false,
+      enumerable: true,
+      get: function () {
+        if (Dep.target) {
+          dep.depend();
+        }
+        return val;
+      },
+      set: function (newVal) {
+        if (val === newVal) return;
+        val = newVal;
+        observe(newVal);
+        dep.notify();
+      }
+    })
+  }
+}
+
+function observe (data) {
+  if (!data || typeof data !== 'object') return;
+  return new Observer(data);
+}
+
+function Watcher (vm, expOrFn, cb) {
+  this.vm = vm;
+  this.cb = cb;
+  this.depIds = {};
+  if (typeof expOrFn === 'function') {
+    this.getter = expOrFn;
+  } else {
+    this.getter = this.parseGetter(expOrFn);
+  }
+  this.value = this.get();
+}
+
+Watcher.prototype = {
+  update: function () {
+    this.run();
+  },
+  run: function () {
+    var oldValue = this.value;
+    var newValue = this.get();
+    if (this.value === newValue) return;
+    this.value = newValue;
+    this.cb.call(this.vm, newValue, oldValue);
+  },
+  addDep (dep) {
+    if (!this.depIds[dep.id]) {
+      dep.addSub(this);
+      this.depIds[dep.id] = dep;
+    }
+  },
+  get: function () {
+    Dep.target = this;
+    var value = this.getter.call(this.vm, this.vm);
+    Dep.target = null;
+    return value;
+  },
+  parseGetter: function (exp) {
+    if (/[^\w.$]/.test(exp)) return;
+    var exps = exp.split('.');
+    return function (obj) {
+      for (let key of exps) {
+        if (!obj) return;
+        obj = obj[key]
+      }
+      return obj;
+    }
+  }
+}
+
+function Vue (options) {
+  this.$options = options;
+  let data = this._data = this.$options.data;
+  Object.keys(data).forEach(key => {
+    this.proxyData(key);
+  })
+  observe(data);
+}
+
+Vue.prototype = {
+  proxyData: function(key) {
+    var me = this;
+    Object.defineProperty(me, key, {
+      configurable: false,
+      enumerable: true,
+      get () {
+        return me._data[key];
+      },
+      set (newVal) {
+        me._data[key] = newVal;
+      }
+    })
+  }, 
+  $watch: function (exp, cb) {
+    new Watcher(this, exp, cb);
+  }
+}
+
+var input = document.getElementById('vm-input');
+var pp = document.getElementById('pp');
+
+var vm = new Vue({
+  data: {
+    text: ''
+  }
+})
+
+vm.$watch('text', function (newVal) {
+  pp.innerText = newVal;
+})
+
+input.addEventListener('keyup', function (event) {
+  vm.text = event.target.value;
+}, false)
+</script>
+</html>
