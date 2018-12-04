@@ -126,14 +126,14 @@ function Vue (options) {
   this.$options = options;
   let data = this._data = this.$options.data;
   Object.keys(data).forEach(key => {
-    this.proxyData(key);
+    this._proxyData(key);
   });
   this._initComputed();
   observe(data);
 }
 
 Vue.prototype = {
-  proxyData: function(key) {
+  _proxyData: function(key) {
     var me = this;
     Object.defineProperty(me, key, {
       configurable: false,
