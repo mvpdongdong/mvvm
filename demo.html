@@ -127,7 +127,8 @@ function Vue (options) {
   let data = this._data = this.$options.data;
   Object.keys(data).forEach(key => {
     this.proxyData(key);
-  })
+  });
+  this._initComputed();
   observe(data);
 }
 
@@ -147,6 +148,20 @@ Vue.prototype = {
   }, 
   $watch: function (exp, cb) {
     new Watcher(this, exp, cb);
+  },
+  _initComputed: function () {
+    var me = this;
+    var computed = this.$options.computed;
+    if (typeof computed === 'object') {
+      Object.keys(computed).forEach(function (key) {
+        Object.defineProperty(me, key, {
+          get: typeof computed[key] === 'function' 
+                ? computed[key] 
+                : computed[key].get,
+          set: function() {}
+        })
+      });
+    }
   }
 }
 
@@ -157,14 +172,14 @@ var vm = new Vue({
   data: {
     text: ''
   }
-})
+});
 
 vm.$watch('text', function (newVal) {
   pp.innerText = newVal;
-})
+});
 
 input.addEventListener('keyup', function (event) {
   vm.text = event.target.value;
-}, false)
+}, false);
 </script>
 </html>
